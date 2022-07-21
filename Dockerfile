@@ -1,12 +1,10 @@
-FROM osrf/ros:kinetic-desktop-full-xenial
+FROM osrf/ros:noetic-desktop-full
 
 RUN apt-get update \
-    && apt-get install -y curl \
-    && curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add - \
-    && apt-get update \
-    && apt-get install -y ros-kinetic-navigation \
-    && apt-get install -y ros-kinetic-robot-localization \
-    && apt-get install -y ros-kinetic-robot-state-publisher \
+    && apt-get install -y git \
+    && apt-get install -y ros-noetic-navigation \
+    && apt-get install -y ros-noetic-robot-localization \
+    && apt-get install -y ros-noetic-robot-state-publisher \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update \
@@ -18,14 +16,19 @@ RUN apt-get update \
 
 SHELL ["/bin/bash", "-c"]
 
-RUN mkdir -p ~/catkin_ws/src \
-    && cd ~/catkin_ws/src \
-    && git clone https://github.com/TixiaoShan/LIO-SAM.git \
+# LIO-SAM
+RUN mkdir -p /root/catkin_ws/src \
+    && cd /root/catkin_ws/src \
+    && git clone https://github.com/jinkunw/LIO-SAM.git \
     && cd .. \
-    && source /opt/ros/kinetic/setup.bash \
-    && catkin_make
+    && source /opt/ros/noetic/setup.bash \
+    && catkin_make -DCMAKE_BUILD_TYPE=Release
 
-RUN echo "source /opt/ros/kinetic/setup.bash" >> /root/.bashrc \
-    && echo "source /root/catkin_ws/devel/setup.bash" >> /root/.bashrc
+# OUSTER
+RUN cd /root/catkin_ws/src \
+    && source /opt/ros/noetic/setup.bash \
+    && git clone https://github.com/ouster-lidar/ouster_example.git \
+    && cd .. \
+    && catkin_make -DCMAKE_BUILD_TYPE=Release
 
-WORKDIR /root/catkin_ws
+RUN echo "source /root/catkin_ws/devel/setup.bash" >> /root/.bashrc
